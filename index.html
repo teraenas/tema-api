@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/2c88cab4bc.js" crossorigin="anonymous"></script>
+    <script src="script.js" defer></script>
+    <title>Todo App</title>
+</head>
+
+<body>
+    <div id="main-container">
+        <div class="header">
+            <div id="todos-progress">
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="progress-svg">
+                    <defs>
+                        <linearGradient id="GradientColor">
+                            <stop offset="0%" stop-color="#5664b9" />
+                            <stop offset="100%" stop-color="#2c8fa3" />
+                        </linearGradient>
+                    </defs>
+                    <circle id="progress-circle" cx="50%" cy="50%" r="36" stroke-width="3" />
+                </svg>
+                <p id="progress-percentage">0%</p>
+            </div>
+            <div class="user-details">
+                <p>Mihai Dragan</p>
+                <h1>TODOs</h1>
+            </div>
+            <div class="main-actions">
+                <button id="todo-add-button">Add TODO</button>
+            </div>
+        </div>
+        <div id="add-new-todo-field" class="hidden">
+            <div class="input-area">
+                <h2>Add a TODO</h2>
+                <textarea id="add-new-todo-textarea" cols="20" rows="5"></textarea>
+            </div>
+            <div class="controls">
+                <button id="add-new-todo-submit-button" class="add-new-todo__submit-button" disabled><i
+                        class="fa-solid fa-check"></i>ADD</button>
+                <button id="add-new-todo-cancel-button" class="add-new-todo__cancel-button"><i
+                        class="fa-solid fa-xmark"></i>Cancel</button>
+            </div>
+        </div>
+        <div id="todos-container">
+            <!-- <div id="todo-0" class="todo" status="incomplete">
+                <div id="todo-0-status" class="todo__status">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="todo__content">
+                    <p id="todo-0-text" class="todo__text">Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                        Corrupti explicabo earum
+                        tempora accusantium hic nihil.</p>
+                </div>
+                <div class="todo__settings">
+                    <button id="todo-0-complete-button" class="complete-button">Complete</button>
+                    <button id="todo-0-edit-button" class="glyph small dark">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button id="todo-0-delete-button" class="glyph small dark">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</body>
+
+</html>
