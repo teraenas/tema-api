@@ -5,45 +5,46 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./styles/global.css">
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/header.css">
+    <link rel="stylesheet" href="./styles/todos.css">
     <script src="https://kit.fontawesome.com/2c88cab4bc.js" crossorigin="anonymous"></script>
-    <script src="script.js" defer></script>
+    <script src="./scripts/script.js" defer></script>
     <title>Todo App</title>
 </head>
 
 <body>
-    <div id="main-container">
-        <div class="header">
+    <div id="todo-app-main-container">
+        <div class="todo-app-header">
             <div id="todos-progress">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="progress-svg">
-                    <defs>
+                    <!-- <defs>
                         <linearGradient id="GradientColor">
                             <stop offset="0%" stop-color="#5664b9" />
                             <stop offset="100%" stop-color="#2c8fa3" />
                         </linearGradient>
-                    </defs>
-                    <circle id="progress-circle" cx="50%" cy="50%" r="36" stroke-width="3" />
+                    </defs> -->
+                    <circle id="progress-indicator" cx="50%" cy="50%" r="36" stroke-width="3" />
                 </svg>
-                <p id="progress-percentage">0%</p>
+                <p id="progress-indicator-value">0%</p>
             </div>
             <div class="user-details">
                 <p>Mihai Dragan</p>
                 <h1>TODOs</h1>
             </div>
             <div class="main-actions">
-                <button id="todo-add-button">Add TODO</button>
+                <button id="add-todo-toggle">Add TODO</button>
             </div>
         </div>
-        <div id="add-new-todo-field" class="hidden">
+        <div id="add-todo-dialog" class="hidden">
             <div class="input-area">
                 <h2>Add a TODO</h2>
-                <textarea id="add-new-todo-textarea" cols="20" rows="5"></textarea>
+                <textarea id="add-todo-input" cols="20" rows="5"></textarea>
             </div>
             <div class="controls">
-                <button id="add-new-todo-submit-button" class="add-new-todo__submit-button" disabled><i
-                        class="fa-solid fa-check"></i>ADD</button>
-                <button id="add-new-todo-cancel-button" class="add-new-todo__cancel-button"><i
-                        class="fa-solid fa-xmark"></i>Cancel</button>
+                <button id="add-todo-button" disabled><i class="fa-solid fa-check"></i>Add new TODO</button>
+                <button id="cancel-add-todo-button"><i class="fa-solid fa-xmark"></i>Cancel</button>
             </div>
         </div>
         <div id="todos-container">

@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500;700&display=swap');
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #5664b9, #2c8fa3);
+
+  --clr-primary-blue: #2196f3;
+  --clr-primary-dark-gray: #747575;
+  --clr-disabled: #c4c4c4;
+  --clr-accent-teal: #46d5b5;
+  --clr-container-bg: #fafafa;
+  --clr-primary-orange: #ff922c;
+}
+
+*,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}

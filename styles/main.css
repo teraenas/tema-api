@@ -1,0 +1,67 @@
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-gradient);
+}
+
+p {
+  font-weight: 300;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  appearance: none;
+  background-color: transparent;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+button.glyph.small {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.875em;
+}
+
+button.glyph.dark {
+  color: var(--clr-primary-blue);
+  border: 2px solid var(--clr-primary-blue);
+}
+
+button.glyph.dark:hover {
+  color: white;
+  background-color: var(--clr-primary-blue);
+}
+
+button.glyph:disabled,
+button.glyph:hover:disabled {
+  color: white;
+  background-color: var(--clr-disabled);
+  border: none;
+}
+
+#todo-app-main-container {
+  width: 40rem;
+  margin: 6rem 0;
+  background-color: var(--clr-container-bg);
+}

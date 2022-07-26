@@ -1,0 +1,66 @@
+.todo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.todo > * {
+  border: 1px solid green;
+}
+
+.todo__status {
+  font-size: 1.6rem;
+}
+
+:where(.todo[status='incomplete']) .todo__status {
+  color: var(--clr-primary-dark-gray);
+}
+
+:where(.todo[status='complete']) .todo__status {
+  color: var(--clr-accent-teal);
+}
+
+.todo__content {
+  max-width: 50%;
+}
+
+.todo__text {
+  font-weight: 500;
+  overflow-wrap: break-word;
+  color: var(--clr-primary-dark-gray);
+}
+
+.todo__actions {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+  gap: 0.66rem;
+}
+
+.mark-complete-button {
+  padding: 0.2rem 0.6rem;
+  color: white;
+  background-color: var(--clr-primary-blue);
+  border: none;
+  border-radius: 2rem;
+}
+
+.mark-complete-button:hover {
+  background-color: var(--clr-accent-teal);
+}
+
+.mark-complete-button:disabled,
+.mark-complete-button:hover:disabled {
+  background-color: var(--clr-disabled);
+}
+
+.todo button[role='edit-button'][editing='true'] {
+  color: white;
+  background-color: var(--clr-accent-teal);
+  border: none;
+}
+
+:where(.todo[status='complete']) .todo__text {
+  color: var(--clr-disabled);
+}

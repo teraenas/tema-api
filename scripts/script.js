@@ -1,36 +1,40 @@
 const apiURL = 'https://whatistheretodo.herokuapp.com/todos/';
-const todosProgress = document.querySelector('#progress-circle');
-const progressPercentage = document.querySelector('#progress-percentage');
-const todosContainer = document.querySelector('#todos-container');
-const addTodoButton = document.querySelector('#todo-add-button');
-const addNewTodoField = document.querySelector('#add-new-todo-field');
-const addNewTodoButton = document.querySelector('#add-new-todo-submit-button');
-const cancelNewTodoButton = document.querySelector(
-  '#add-new-todo-cancel-button'
+const progressIndicator = document.querySelector('#progress-indicator');
+const progressIndicatorValue = document.querySelector(
+  '#progress-indicator-value'
 );
-const addNewTodoInput = document.querySelector('#add-new-todo-textarea');
+const addTodoToggle = document.querySelector('#add-todo-toggle');
+const addTodoDialog = document.querySelector('#add-todo-dialog');
+const addTodoInput = document.querySelector('#add-todo-input');
+const addTodoButton = document.querySelector('#add-todo-button');
+const cancelAddTodoButton = document.querySelector('#cancel-add-todo-button');
+const todosContainer = document.querySelector('#todos-container');
+
+let todoCurrentlyBeingEdited = null;
 
 const updateProgress = function () {
   const todos = [...todosContainer.querySelectorAll('.todo')];
-  const percentage =
+  const completedPercentage =
     Math.round(
       (todos.filter(todo => todo.getAttribute('status') === 'complete').length *
         100) /
         todos.length
     ) || 0;
-  todosProgress.setAttribute(
+  progressIndicator.setAttribute(
     'style',
-    `--value: ${Math.round(226 - 2.26 * percentage)};`
+    `--value: ${Math.round(226 - 2.26 * completedPercentage)};`
   );
-  let currentPercentage = parseInt(progressPercentage.innerText.slice(0, -1));
+  let currentPercentage = parseInt(
+    progressIndicatorValue.innerText.slice(0, -1)
+  );
   const progress = setInterval(() => {
-    if (currentPercentage === percentage) {
+    if (currentPercentage === completedPercentage) {
       clearInterval(progress);
     } else {
-      currentPercentage < percentage
+      currentPercentage < completedPercentage
         ? currentPercentage++
         : currentPercentage--;
-      progressPercentage.innerText = `${currentPercentage}%`;
+      progressIndicatorValue.innerText = `${currentPercentage}%`;
     }
   }, 10);
 };
@@ -51,14 +55,14 @@ const createNewElement = function ({
     });
   }
   if (children) {
-    if (typeof children === 'string') {
-      const textContent = document.createTextNode(children);
-      element.append(textContent);
-    } else {
-      children.forEach(child => {
+    children.forEach(child => {
+      if (typeof child === 'string') {
+        const textContent = document.createTextNode(child);
+        element.append(textContent);
+      } else {
         element.appendChild(child);
-      });
-    }
+      }
+    });
   }
   return element;
 };
@@ -77,10 +81,10 @@ const addTodoElement = function (content, id, isCompleted) {
   });
 
   const todoText = createNewElement({
-    type: 'p',
+    type: 'div',
     id: `todo-${id}-text`,
     cls: 'todo__text',
-    children: content,
+    children: [content],
   });
 
   const todoContent = createNewElement({
@@ -89,15 +93,15 @@ const addTodoElement = function (content, id, isCompleted) {
     children: [todoText],
   });
 
-  const completeButton = createNewElement({
+  const markCompleteButton = createNewElement({
     type: 'button',
-    id: `todo-${id}-complete-button`,
-    cls: 'complete-button',
-    attr: isCompleted ? [{ name: 'disabled', value: '' }] : null,
-    children: isCompleted ? 'Completed' : 'Complete',
+    id: `todo-${id}-mark-complete-button`,
+    cls: 'mark-complete-button',
+    attr: [...(isCompleted ? [{ name: 'disabled', value: '' }] : [])],
+    children: [isCompleted ? 'Completed' : 'Complete'],
   });
 
-  completeButton.addEventListener('click', () => {
+  markCompleteButton.addEventListener('click', () => {
     markComplete(id);
   });
 
@@ -110,12 +114,11 @@ const addTodoElement = function (content, id, isCompleted) {
     type: 'button',
     id: `todo-${id}-edit-button`,
     cls: 'glyph small dark',
-    attr: isCompleted ? [{ name: 'disabled', value: '' }] : null,
+    attr: [
+      ...(isCompleted ? [{ name: 'disabled', value: '' }] : []),
+      { name: 'role', value: 'edit-button' },
+    ],
     children: [editIcon],
-  });
-
-  editButton.addEventListener('click', () => {
-    editTodo(id);
   });
 
   const deleteIcon = createNewElement({
@@ -134,10 +137,10 @@ const addTodoElement = function (content, id, isCompleted) {
     deleteTodo(id);
   });
 
-  const todoSettings = createNewElement({
+  const todoActions = createNewElement({
     type: 'div',
-    cls: 'todo__settings',
-    children: [completeButton, editButton, deleteButton],
+    cls: 'todo__actions',
+    children: [markCompleteButton, editButton, deleteButton],
   });
 
   const todo = createNewElement({
@@ -145,45 +148,90 @@ const addTodoElement = function (content, id, isCompleted) {
     id: `todo-${id}`,
     cls: 'todo',
     attr: [{ name: 'status', value: isCompleted ? 'complete' : 'incomplete' }],
-    children: [todoStatus, todoContent, todoSettings],
+    children: [todoStatus, todoContent, todoActions],
   });
 
   todosContainer.appendChild(todo);
 };
 
 const updateLocalTodo = function (todo, action) {
-  const todoElement = document.querySelector(`#todo-${todo._id}`);
   console.log(todo, action);
+  const todoElement = document.querySelector(`#todo-${todo._id}`);
   const todoText = todoElement.querySelector(`#todo-${todo._id}-text`);
-  const completeButton = todoElement.querySelector(
-    `#todo-${todo._id}-complete-button`
+  const markCompleteButton = todoElement.querySelector(
+    `#todo-${todo._id}-mark-complete-button`
   );
   const editButton = todoElement.querySelector(`#todo-${todo._id}-edit-button`);
+
   if (action === 'deleted') {
     todosContainer.removeChild(todoElement);
   } else if (action === 'updated') {
     todoText.innerText = todo.todo;
-    todoElement.setAttribute(
-      'status',
-      todo.isCompleted ? 'complete' : 'incomplete'
-    );
     if (todo.isCompleted) {
-      completeButton.setAttribute('disabled', '');
-      completeButton.textContent = 'Completed';
+      todoElement.setAttribute('status', 'complete');
+      markCompleteButton.setAttribute('disabled', '');
+      markCompleteButton.textContent = 'Completed';
       editButton.setAttribute('disabled', '');
     }
   }
   updateProgress();
 };
 
-const toggleAddTodoField = function (e) {
-  if (e.target.id === 'add-new-todo-cancel-button') {
-    addNewTodoInput.value = '';
-    addNewTodoButton.setAttribute('disabled', '');
-    addNewTodoField.classList.add('hidden');
+const toggleAddTodoDialog = function (e) {
+  if (e.target === cancelAddTodoButton) {
+    addTodoInput.value = '';
+    addTodoButton.setAttribute('disabled', '');
+    addTodoDialog.classList.add('hidden');
   } else {
-    addNewTodoField.removeAttribute('class');
+    addTodoDialog.removeAttribute('class');
   }
+};
+
+const handleTodoUpdate = function (e) {
+  if (e.target.getAttribute('contenteditable') != '') {
+    if (
+      e.target.closest('button')?.getAttribute('role') === 'edit-button' ||
+      e.target.getAttribute('role') === 'edit-button'
+    ) {
+      selectedForEditing = e.target.closest('.todo');
+      if (todoCurrentlyBeingEdited === selectedForEditing) {
+        submitEditingTodo(selectedForEditing.id.split('-')[1]);
+      } else {
+        // const initialText = text.innerText;
+        if (todoCurrentlyBeingEdited)
+          cancelEditingTodo(todoCurrentlyBeingEdited.id.split('-')[1]);
+        todoCurrentlyBeingEdited = selectedForEditing;
+        startEditingTodo(selectedForEditing.id.split('-')[1]);
+      }
+    } else if (todoCurrentlyBeingEdited)
+      cancelEditingTodo(todoCurrentlyBeingEdited.id.split('-')[1]);
+  } else console.log('click pe edit field');
+};
+
+const startEditingTodo = function (id) {
+  const editButton = document.querySelector(`#todo-${id}-edit-button`);
+  const text = document.querySelector(`#todo-${id}-text`);
+  editButton.setAttribute('editing', 'true');
+  editButton.innerHTML = '<i class="fa-solid fa-check"></i>';
+  text.setAttribute('contenteditable', '');
+  text.focus();
+  console.log('editing ' + id);
+};
+
+const submitEditingTodo = function (id) {
+  cancelEditingTodo(id);
+  console.log('SE VA FACE UPDATE');
+};
+
+const cancelEditingTodo = function (id) {
+  const editButton = document.querySelector(`#todo-${id}-edit-button`);
+  const text = document.querySelector(`#todo-${id}-text`);
+  editButton.setAttribute('editing', 'false');
+  editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
+  text.removeAttribute('contenteditable');
+  text.blur();
+  todoCurrentlyBeingEdited = null;
+  console.log('cancelled editing for ' + id);
 };
 
 async function getTodos() {
@@ -205,14 +253,15 @@ async function addTodo() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        todo: addNewTodoInput.value,
+        todo: addTodoInput.value,
         isCompleted: false,
       }),
     });
     const todo = await response.json();
     addTodoElement(todo.todo, todo._id, todo.isCompleted);
-    addNewTodoInput.value = '';
-    addNewTodoButton.setAttribute('disabled', '');
+    updateProgress();
+    addTodoInput.value = '';
+    addTodoButton.setAttribute('disabled', '');
   } catch (error) {
     console.warn(`Error(${error.name}): ${error.message}`);
   }
@@ -264,13 +313,14 @@ async function deleteTodo(id) {
 
 getTodos();
 
-addTodoButton.addEventListener('click', toggleAddTodoField);
-addNewTodoInput.addEventListener('input', e => {
+addTodoToggle.addEventListener('click', toggleAddTodoDialog);
+addTodoInput.addEventListener('input', e => {
   if (e.target.value === '') {
-    addNewTodoButton.setAttribute('disabled', '');
+    addTodoButton.setAttribute('disabled', '');
   } else {
-    addNewTodoButton.removeAttribute('disabled');
+    addTodoButton.removeAttribute('disabled');
   }
 });
-addNewTodoButton.addEventListener('click', addTodo);
-cancelNewTodoButton.addEventListener('click', toggleAddTodoField);
+addTodoButton.addEventListener('click', addTodo);
+cancelAddTodoButton.addEventListener('click', toggleAddTodoDialog);
+window.addEventListener('click', handleTodoUpdate);
