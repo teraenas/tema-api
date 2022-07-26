@@ -22,13 +22,21 @@
 }
 
 .todo__content {
-  max-width: 50%;
+  width: 50%;
 }
 
 .todo__text {
+  padding: 0.8rem;
   font-weight: 500;
   overflow-wrap: break-word;
   color: var(--clr-primary-dark-gray);
+  border-radius: 0.5rem;
+}
+
+.todo__text[contenteditable] {
+  background-color: white;
+  box-shadow: 5px 5px 15px rgba(0 0 0 / 0.2);
+  outline: none;
 }
 
 .todo__actions {

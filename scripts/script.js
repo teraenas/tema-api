@@ -10,7 +10,7 @@ const addTodoButton = document.querySelector('#add-todo-button');
 const cancelAddTodoButton = document.querySelector('#cancel-add-todo-button');
 const todosContainer = document.querySelector('#todos-container');
 
-let todoCurrentlyBeingEdited = null;
+let todoAlreadyBeingEdited = null;
 
 const updateProgress = function () {
   const todos = [...todosContainer.querySelectorAll('.todo')];
@@ -57,8 +57,8 @@ const createNewElement = function ({
   if (children) {
     children.forEach(child => {
       if (typeof child === 'string') {
-        const textContent = document.createTextNode(child);
-        element.append(textContent);
+        const textNode = document.createTextNode(child);
+        element.append(textNode);
       } else {
         element.appendChild(child);
       }
@@ -155,7 +155,6 @@ const addTodoElement = function (content, id, isCompleted) {
 };
 
 const updateLocalTodo = function (todo, action) {
-  console.log(todo, action);
   const todoElement = document.querySelector(`#todo-${todo._id}`);
   const todoText = todoElement.querySelector(`#todo-${todo._id}-text`);
   const markCompleteButton = todoElement.querySelector(
@@ -183,7 +182,7 @@ const toggleAddTodoDialog = function (e) {
     addTodoButton.setAttribute('disabled', '');
     addTodoDialog.classList.add('hidden');
   } else {
-    addTodoDialog.removeAttribute('class');
+    addTodoDialog.classList.remove('hidden');
   }
 };
 
@@ -193,48 +192,52 @@ const handleTodoUpdate = function (e) {
       e.target.closest('button')?.getAttribute('role') === 'edit-button' ||
       e.target.getAttribute('role') === 'edit-button'
     ) {
-      selectedForEditing = e.target.closest('.todo');
-      if (todoCurrentlyBeingEdited === selectedForEditing) {
-        submitEditingTodo(selectedForEditing.id.split('-')[1]);
+      todoSelectedForEditing = e.target.closest('.todo');
+      if (todoAlreadyBeingEdited === todoSelectedForEditing) {
+        finishEditingTodo(todoSelectedForEditing);
       } else {
-        // const initialText = text.innerText;
-        if (todoCurrentlyBeingEdited)
-          cancelEditingTodo(todoCurrentlyBeingEdited.id.split('-')[1]);
-        todoCurrentlyBeingEdited = selectedForEditing;
-        startEditingTodo(selectedForEditing.id.split('-')[1]);
+        if (todoAlreadyBeingEdited) cancelEditingTodo(todoAlreadyBeingEdited);
+        todoAlreadyBeingEdited = todoSelectedForEditing;
+        startEditingTodo(todoSelectedForEditing);
       }
-    } else if (todoCurrentlyBeingEdited)
-      cancelEditingTodo(todoCurrentlyBeingEdited.id.split('-')[1]);
-  } else console.log('click pe edit field');
+    } else if (todoAlreadyBeingEdited)
+      cancelEditingTodo(todoAlreadyBeingEdited);
+  }
 };
 
-const startEditingTodo = function (id) {
-  const editButton = document.querySelector(`#todo-${id}-edit-button`);
-  const text = document.querySelector(`#todo-${id}-text`);
+const startEditingTodo = function (todo) {
+  const editButton = todo.querySelector(`#${todo.id}-edit-button`);
+  const text = todo.querySelector(`#${todo.id}-text`);
   editButton.setAttribute('editing', 'true');
   editButton.innerHTML = '<i class="fa-solid fa-check"></i>';
   text.setAttribute('contenteditable', '');
   text.focus();
-  console.log('editing ' + id);
 };
 
-const submitEditingTodo = function (id) {
-  cancelEditingTodo(id);
-  console.log('SE VA FACE UPDATE');
-};
-
-const cancelEditingTodo = function (id) {
-  const editButton = document.querySelector(`#todo-${id}-edit-button`);
-  const text = document.querySelector(`#todo-${id}-text`);
+const finishEditingTodo = async function (todo) {
+  todoAlreadyBeingEdited = null;
+  const editButton = todo.querySelector(`#${todo.id}-edit-button`);
+  const text = todo.querySelector(`#${todo.id}-text`);
+  await editTodo(todo.id.split('-')[1]);
   editButton.setAttribute('editing', 'false');
   editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
   text.removeAttribute('contenteditable');
   text.blur();
-  todoCurrentlyBeingEdited = null;
-  console.log('cancelled editing for ' + id);
 };
 
-async function getTodos() {
+const cancelEditingTodo = async function (todo) {
+  todoAlreadyBeingEdited = null;
+  const editButton = todo.querySelector(`#${todo.id}-edit-button`);
+  const text = todo.querySelector(`#${todo.id}-text`);
+  const initial = await getRemoteTodo(todo.id.split('-')[1]);
+  text.innerText = initial.todo;
+  editButton.setAttribute('editing', 'false');
+  editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
+  text.removeAttribute('contenteditable');
+  text.blur();
+};
+
+async function getRemoteTodos() {
   try {
     const response = await fetch(apiURL);
     const todoList = await response.json();
@@ -247,13 +250,24 @@ async function getTodos() {
   }
 }
 
+async function getRemoteTodo(id) {
+  try {
+    const response = await fetch(`${apiURL}${id}`);
+    const todo = await response.json();
+    return todo;
+  } catch (error) {
+    console.warn(`Error(${error.name}): ${error.message}`);
+  }
+}
+
 async function addTodo() {
   try {
     const response = await fetch(apiURL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        todo: addTodoInput.value,
+        todo:
+          addTodoInput.value.trim() || 'Nothing to do. Did we miss something?',
         isCompleted: false,
       }),
     });
@@ -284,12 +298,13 @@ async function markComplete(id) {
 }
 
 async function editTodo(id) {
+  const text = document.querySelector(`#todo-${id}-text`).textContent.trim();
   try {
     const response = await fetch(`${apiURL}${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        todo: 'text de inlocuit',
+        todo: text,
       }),
     });
     const todo = await response.json();
@@ -311,7 +326,7 @@ async function deleteTodo(id) {
   }
 }
 
-getTodos();
+getRemoteTodos();
 
 addTodoToggle.addEventListener('click', toggleAddTodoDialog);
 addTodoInput.addEventListener('input', e => {
@@ -323,4 +338,4 @@ addTodoInput.addEventListener('input', e => {
 });
 addTodoButton.addEventListener('click', addTodo);
 cancelAddTodoButton.addEventListener('click', toggleAddTodoDialog);
-window.addEventListener('click', handleTodoUpdate);
+window.addEventListener('mousedown', handleTodoUpdate);
