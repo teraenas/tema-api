@@ -1,12 +1,8 @@
 .todo {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.6rem;
   padding: 2rem;
-}
-
-.todo > * {
-  border: 1px solid green;
 }
 
 .todo__status {
@@ -22,7 +18,7 @@
 }
 
 .todo__content {
-  width: 50%;
+  width: 55%;
 }
 
 .todo__text {
@@ -36,7 +32,6 @@
 .todo__text[contenteditable] {
   background-color: white;
   box-shadow: 5px 5px 15px rgba(0 0 0 / 0.2);
-  outline: none;
 }
 
 .todo__actions {

@@ -61,7 +61,7 @@ button.glyph:hover:disabled {
 }
 
 #todo-app-main-container {
-  width: 40rem;
+  width: 50rem;
   margin: 6rem 0;
   background-color: var(--clr-container-bg);
 }

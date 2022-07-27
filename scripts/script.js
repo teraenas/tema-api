@@ -10,7 +10,7 @@ const addTodoButton = document.querySelector('#add-todo-button');
 const cancelAddTodoButton = document.querySelector('#cancel-add-todo-button');
 const todosContainer = document.querySelector('#todos-container');
 
-let todoAlreadyBeingEdited = null;
+let todoBeingEdited = null;
 
 const updateProgress = function () {
   const todos = [...todosContainer.querySelectorAll('.todo')];
@@ -80,7 +80,7 @@ const addTodoElement = function (content, id, isCompleted) {
     children: [checkIcon],
   });
 
-  const todoText = createNewElement({
+  const inputField = createNewElement({
     type: 'div',
     id: `todo-${id}-text`,
     cls: 'todo__text',
@@ -90,19 +90,7 @@ const addTodoElement = function (content, id, isCompleted) {
   const todoContent = createNewElement({
     type: 'div',
     cls: 'todo__content',
-    children: [todoText],
-  });
-
-  const markCompleteButton = createNewElement({
-    type: 'button',
-    id: `todo-${id}-mark-complete-button`,
-    cls: 'mark-complete-button',
-    attr: [...(isCompleted ? [{ name: 'disabled', value: '' }] : [])],
-    children: [isCompleted ? 'Completed' : 'Complete'],
-  });
-
-  markCompleteButton.addEventListener('click', () => {
-    markComplete(id);
+    children: [inputField],
   });
 
   const editIcon = createNewElement({
@@ -119,6 +107,20 @@ const addTodoElement = function (content, id, isCompleted) {
       { name: 'role', value: 'edit-button' },
     ],
     children: [editIcon],
+  });
+
+  editButton.addEventListener('click', handleEditTodo);
+
+  const markCompleteButton = createNewElement({
+    type: 'button',
+    id: `todo-${id}-mark-complete-button`,
+    cls: 'mark-complete-button',
+    attr: [...(isCompleted ? [{ name: 'disabled', value: '' }] : [])],
+    children: [isCompleted ? 'Completed' : 'Complete'],
+  });
+
+  markCompleteButton.addEventListener('click', () => {
+    markComplete(id);
   });
 
   const deleteIcon = createNewElement({
@@ -140,7 +142,7 @@ const addTodoElement = function (content, id, isCompleted) {
   const todoActions = createNewElement({
     type: 'div',
     cls: 'todo__actions',
-    children: [markCompleteButton, editButton, deleteButton],
+    children: [markCompleteButton, deleteButton],
   });
 
   const todo = createNewElement({
@@ -148,7 +150,7 @@ const addTodoElement = function (content, id, isCompleted) {
     id: `todo-${id}`,
     cls: 'todo',
     attr: [{ name: 'status', value: isCompleted ? 'complete' : 'incomplete' }],
-    children: [todoStatus, todoContent, todoActions],
+    children: [todoStatus, todoContent, editButton, todoActions],
   });
 
   todosContainer.appendChild(todo);
@@ -186,55 +188,46 @@ const toggleAddTodoDialog = function (e) {
   }
 };
 
-const handleTodoUpdate = function (e) {
-  if (e.target.getAttribute('contenteditable') != '') {
-    if (
-      e.target.closest('button')?.getAttribute('role') === 'edit-button' ||
-      e.target.getAttribute('role') === 'edit-button'
-    ) {
-      todoSelectedForEditing = e.target.closest('.todo');
-      if (todoAlreadyBeingEdited === todoSelectedForEditing) {
-        finishEditingTodo(todoSelectedForEditing);
-      } else {
-        if (todoAlreadyBeingEdited) cancelEditingTodo(todoAlreadyBeingEdited);
-        todoAlreadyBeingEdited = todoSelectedForEditing;
-        startEditingTodo(todoSelectedForEditing);
-      }
-    } else if (todoAlreadyBeingEdited)
-      cancelEditingTodo(todoAlreadyBeingEdited);
+const handleEditTodo = function (e) {
+  const editButton = e.target.closest('button');
+  const todo = e.target.closest('.todo');
+
+  if (editButton.getAttribute('editing') === 'true') {
+    finishEditingTodo(todo);
+    todoBeingEdited = null;
+  } else {
+    todoBeingEdited = todo;
+    startEditingTodo(todo);
   }
 };
 
 const startEditingTodo = function (todo) {
   const editButton = todo.querySelector(`#${todo.id}-edit-button`);
-  const text = todo.querySelector(`#${todo.id}-text`);
+  const inputField = todo.querySelector(`#${todo.id}-text`);
   editButton.setAttribute('editing', 'true');
   editButton.innerHTML = '<i class="fa-solid fa-check"></i>';
-  text.setAttribute('contenteditable', '');
-  text.focus();
+  inputField.setAttribute('contenteditable', '');
+  inputField.focus();
 };
 
 const finishEditingTodo = async function (todo) {
-  todoAlreadyBeingEdited = null;
   const editButton = todo.querySelector(`#${todo.id}-edit-button`);
-  const text = todo.querySelector(`#${todo.id}-text`);
+  const inputField = todo.querySelector(`#${todo.id}-text`);
   await editTodo(todo.id.split('-')[1]);
   editButton.setAttribute('editing', 'false');
   editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
-  text.removeAttribute('contenteditable');
-  text.blur();
+  inputField.removeAttribute('contenteditable');
 };
 
-const cancelEditingTodo = async function (todo) {
-  todoAlreadyBeingEdited = null;
+const abortEditingTodo = async function (todo) {
   const editButton = todo.querySelector(`#${todo.id}-edit-button`);
-  const text = todo.querySelector(`#${todo.id}-text`);
+  const inputField = todo.querySelector(`#${todo.id}-text`);
   const initial = await getRemoteTodo(todo.id.split('-')[1]);
-  text.innerText = initial.todo;
+  inputField.innerText = initial.todo;
   editButton.setAttribute('editing', 'false');
   editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
-  text.removeAttribute('contenteditable');
-  text.blur();
+  inputField.removeAttribute('contenteditable');
+  inputField.blur();
 };
 
 async function getRemoteTodos() {
@@ -338,4 +331,21 @@ addTodoInput.addEventListener('input', e => {
 });
 addTodoButton.addEventListener('click', addTodo);
 cancelAddTodoButton.addEventListener('click', toggleAddTodoDialog);
-window.addEventListener('mousedown', handleTodoUpdate);
+
+window.addEventListener('mousedown', e => {
+  if (todoBeingEdited) {
+    const editButton = todoBeingEdited.querySelector('[role="edit-button"]');
+    const textInput = todoBeingEdited.querySelector('.todo__text');
+    if (e.target !== textInput && e.target.closest('button') !== editButton) {
+      abortEditingTodo(todoBeingEdited);
+      todoBeingEdited = null;
+    }
+  }
+});
+
+window.addEventListener('keydown', e => {
+  if (todoBeingEdited && e.key === 'Escape') {
+    abortEditingTodo(todoBeingEdited);
+    todoBeingEdited = null;
+  }
+});
