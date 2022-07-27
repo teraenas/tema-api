@@ -332,16 +332,20 @@ addTodoInput.addEventListener('input', e => {
 addTodoButton.addEventListener('click', addTodo);
 cancelAddTodoButton.addEventListener('click', toggleAddTodoDialog);
 
-window.addEventListener('mousedown', e => {
-  if (todoBeingEdited) {
-    const editButton = todoBeingEdited.querySelector('[role="edit-button"]');
-    const textInput = todoBeingEdited.querySelector('.todo__text');
-    if (e.target !== textInput && e.target.closest('button') !== editButton) {
-      abortEditingTodo(todoBeingEdited);
-      todoBeingEdited = null;
+window.addEventListener(
+  'click',
+  e => {
+    if (todoBeingEdited) {
+      const editButton = todoBeingEdited.querySelector('[role="edit-button"]');
+      const textInput = todoBeingEdited.querySelector('.todo__text');
+      if (e.target !== textInput && e.target.closest('button') !== editButton) {
+        abortEditingTodo(todoBeingEdited);
+        todoBeingEdited = null;
+      }
     }
-  }
-});
+  },
+  true
+);
 
 window.addEventListener('keydown', e => {
   if (todoBeingEdited && e.key === 'Escape') {
